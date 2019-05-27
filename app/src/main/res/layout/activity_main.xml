@@ -11,7 +11,7 @@
         android:layout_width="0dp"
         android:layout_height="0dp"
         android:orientation="vertical"
-        app:layout_constraintBottom_toTopOf="@id/txtConnectionStatus"
+        app:layout_constraintBottom_toTopOf="@id/footer"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintHorizontal_bias="0.0"
         app:layout_constraintStart_toStartOf="parent"
@@ -135,15 +135,31 @@
 
     </LinearLayout>
 
-    <TextView
-        android:id="@+id/txtConnectionStatus"
+    <LinearLayout
+        android:id="@+id/footer"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:background="@color/connectionWaiting"
-        android:gravity="center_vertical"
-        android:paddingEnd="16dp"
-        android:paddingStart="16dp"
-        android:text="@string/connectionStatusWaiting"
-        app:layout_constraintBottom_toBottomOf="parent" />
+        android:orientation="horizontal"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:background="@color/connectionWaiting">
+
+        <TextView
+            android:id="@+id/txtConnectionStatus"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_weight="1"
+            android:gravity="center_vertical"
+            android:paddingEnd="46dp"
+            android:paddingStart="16dp"
+            android:text="@string/connectionStatusWaiting" />
+
+        <ImageButton
+            android:id="@+id/btnHelp"
+            android:layout_width="40dp"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:focusable="true"
+            app:srcCompat="@android:drawable/ic_menu_help" />
+    </LinearLayout>
 
 </android.support.constraint.ConstraintLayout>

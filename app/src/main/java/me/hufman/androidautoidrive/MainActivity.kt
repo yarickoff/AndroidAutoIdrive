@@ -8,6 +8,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.support.v7.app.AppCompatActivity
 import android.os.Bundle
 import android.os.Handler
@@ -16,7 +17,10 @@ import android.provider.Settings
 import android.support.v4.app.ActivityCompat
 import android.support.v4.app.NotificationManagerCompat
 import android.support.v4.content.ContextCompat
+import android.util.DisplayMetrics
 import android.util.Log
+import android.view.Gravity
+import android.view.LayoutInflater
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
@@ -37,6 +41,7 @@ class MainActivity : AppCompatActivity() {
 		const val SECURITY_SERVICE_TIMEOUT = 3000
 		const val REDRAW_INTERVAL = 5000L
 		const val REQUEST_LOCATION = 4000
+		const val PREFERENCE_FIRST_TIME = "me.hufman.androidautoidrive.FIRST_TIME"
 	}
 	val handler = Handler()
 	val redrawListener = RedrawListener()
@@ -50,6 +55,8 @@ class MainActivity : AppCompatActivity() {
 		}
 	}
 	var whenActivityStarted = 0L
+
+	private var popup: PopupWindow? = null
 
 	override fun onCreate(savedInstanceState: Bundle?) {
 		super.onCreate(savedInstanceState)
@@ -108,6 +115,17 @@ class MainActivity : AppCompatActivity() {
 			manager.notify(1, notification)
 		}
 
+		// show the help screen
+		createHelpPopup()
+		btnHelp.setOnClickListener {
+			showHelpPopup()
+		}
+		// show it the first time
+		handler.postDelayed({
+			val preferences = getSharedPreferences(AppSettings.PREFERENCES_NAME, Context.MODE_PRIVATE)
+			if (preferences.getBoolean(PREFERENCE_FIRST_TIME, true)) showHelpPopup()
+		}, 1000)
+
 		// build list of discovered music apps
 		appDiscoveryThread.start()
 		listMusicApps.adapter = object: ArrayAdapter<MusicAppInfo>(this, R.layout.musicapp_listitem, displayedApps) {
@@ -143,6 +161,54 @@ class MainActivity : AppCompatActivity() {
 		super.onDestroy()
 		unregisterReceiver(redrawListener)
 		appDiscoveryThread.stopDiscovery()
+		popup?.dismiss()
+	}
+
+	fun createHelpPopup() {
+		val displaymetrics = DisplayMetrics()
+		windowManager.defaultDisplay.getMetrics(displaymetrics)
+		val view = this.getSystemService(LayoutInflater::class.java).inflate(R.layout.activity_help, LinearLayout(this), true)
+		val width = (displaymetrics.widthPixels * 0.7).toInt()
+		val height = (displaymetrics.heightPixels * 0.7).toInt()
+		popup = PopupWindow(view, width, height, true)
+
+		view.findViewById<Button>(R.id.btnFeedback).setOnClickListener {
+			val dest = "hufman+androidautoidrive@gmail.com"
+			val text = getString(R.string.email_feedback) + getString(R.string.email_feedback_installed) + findConnectedApps()
+			val intent = Intent(Intent.ACTION_SENDTO, Uri.fromParts(
+					"mailto", dest, null)
+			).apply {
+				this.putExtra(Intent.EXTRA_EMAIL, arrayOf(dest))
+				this.putExtra(Intent.EXTRA_SUBJECT, "Android Auto IDrive Feedback")
+				this.putExtra(Intent.EXTRA_TEXT, text)
+			}
+			startActivity(Intent.createChooser(intent, "Send Feedback"))
+		}
+	}
+
+	fun findConnectedApps(): String {
+		val apps = SecurityService.installedSecurityServices.map {
+			val className = SecurityService.knownSecurityServices[it] ?: it
+			val packageName = className.substring(0, className.lastIndexOf('.'))
+			try {
+				// check if we have the package installed
+				val info = packageManager.getPackageInfo(packageName, 0)
+				"${info.packageName} - ${info.versionName}"
+			} catch (e: PackageManager.NameNotFoundException) {
+				"$packageName - unknown version"
+			}
+		}
+		return if (apps.isEmpty()) "None found" else apps.joinToString("\n")
+	}
+
+	fun showHelpPopup() {
+		val preferences = getSharedPreferences(AppSettings.PREFERENCES_NAME, Context.MODE_PRIVATE)
+		val editor = preferences.edit()
+		editor.putBoolean(PREFERENCE_FIRST_TIME, false)
+		editor.apply()
+
+		popup?.dismiss()
+		popup?.showAtLocation(LinearLayout(this), Gravity.CENTER, 10, 10)
 	}
 
 	fun onChangedSwitchNotifications(buttonView: CompoundButton, isChecked: Boolean) {
@@ -225,17 +291,17 @@ class MainActivity : AppCompatActivity() {
 		val ageOfActivity = System.currentTimeMillis() - whenActivityStarted
 		if (ageOfActivity > SECURITY_SERVICE_TIMEOUT && !SecurityService.isConnecting() && !SecurityService.isConnected()) {
 			txtConnectionStatus.text = resources.getString(R.string.connectionStatusMissingConnectedApp)
-			txtConnectionStatus.setBackgroundColor(resources.getColor(R.color.connectionError, null))
+			footer.setBackgroundColor(resources.getColor(R.color.connectionError, null))
 		} else if (!IDriveConnectionListener.isConnected) {
 			txtConnectionStatus.text = resources.getString(R.string.connectionStatusWaiting)
-			txtConnectionStatus.setBackgroundColor(resources.getColor(R.color.connectionWaiting, null))
+			footer.setBackgroundColor(resources.getColor(R.color.connectionWaiting, null))
 		} else {
 			txtConnectionStatus.text = when (IDriveConnectionListener.brand) {
 				"bmw" -> resources.getString(R.string.notification_description_bmw)
 				"mini" -> resources.getString(R.string.notification_description_mini)
 				else -> resources.getString(R.string.notification_description)
 			}
-			txtConnectionStatus.setBackgroundColor(resources.getColor(R.color.connectionConnected, null))
+			footer.setBackgroundColor(resources.getColor(R.color.connectionConnected, null))
 		}
 	}
 

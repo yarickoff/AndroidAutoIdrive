@@ -48,4 +48,29 @@
     <string name="MUSIC_QUEUE_EMPTY">&lt;Empty Queue&gt;</string>
     <string name="MUSIC_SKIP_PREVIOUS">Back</string>
     <string name="MUSIC_SKIP_NEXT">Next</string>
+    <string name="txt_help_header">Tips</string>
+    <string name="txt_help">
+        Android Auto for IDrive uses the BMW/Mini Connected Apps functionality to unofficially add some functionality to the car\'s dashboard.
+        It should work with any BMW or Mini 2014 and later with the Professional Navigation option.
+        This option can be verified by the existence of a ConnectedDrive Apps menu in the dashboard.
+        \n\
+        This app requires BMW Connected Classic or Mini Connected Classic installed, to answer a security challenge from the car,
+        even if it isn\'t used for the car connection.
+        For example, the newer BMW Connected app can be installed to manage the car connection,
+        and Mini Connected Classic app can be installed for the security challenge.
+        \n\
+        This unofficial app is still in beta, bug reports or feature requests are welcomed:
+    </string>
+    <string name="btn_feedback">Send Feedback</string>
+    <string name="email_feedback">
+        Do you have a new feature suggestion?
+        \n\
+        Did the app behave unexpectedly? What should have happened instead?
+        \n\
+    </string>
+    <string name="email_feedback_installed">
+        \n\
+        Installed Connected apps:
+        \n\
+    </string>
 </resources>

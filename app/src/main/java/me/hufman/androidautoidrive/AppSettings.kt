@@ -8,7 +8,7 @@ const val INTENT_GMAP_RELOAD_SETTINGS = "me.hufman.androidautoidrive.carapp.gmap
 object AppSettings {
 	class SettingDefinition (val name: String, val default: String, val comment: String)
 
-	private const val PREFERENCES_NAME = "AndroidAutoIdrive"
+	const val PREFERENCES_NAME = "AndroidAutoIdrive"
 	enum class KEYS {
 		ENABLED_NOTIFICATIONS,
 		ENABLED_NOTIFICATIONS_POPUP,
