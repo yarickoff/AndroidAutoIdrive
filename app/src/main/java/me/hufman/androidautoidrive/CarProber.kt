@@ -95,9 +95,10 @@ class CarProber(val bmwCert: ByteArray, val miniCert: ByteArray): HandlerThread(
 		var errorException: Throwable? = null
 		for (brand in listOf("bmw", "mini")) {
 			try {
+				val audioProber = CarProberAudio()
 				val cert = if (brand == "bmw") bmwCert else miniCert
 				val signedCert = CertMangling.mergeBMWCert(cert, SecurityService.fetchBMWCerts(brandHint = brand))
-				val conn = IDriveConnection.getEtchConnection("127.0.0.1", port, BaseBMWRemotingClient())
+				val conn = IDriveConnection.getEtchConnection("127.0.0.1", port, CarProberAudioCallback(audioProber))
 				val sas_challenge = conn.sas_certificate(signedCert)
 				val sas_login = SecurityService.signChallenge(challenge = sas_challenge)
 				conn.sas_login(sas_login)
@@ -106,15 +107,16 @@ class CarProber(val bmwCert: ByteArray, val miniCert: ByteArray): HandlerThread(
 				val hmiType = capabilities["hmi.type"] as? String?
 				Analytics.reportCarProbeDiscovered(port, vehicleType, hmiType)
 				Log.i(TAG, "Probing detected a HMI type $hmiType")
+				val instanceId = audioProber.probe(conn)
 				if (hmiType?.startsWith("BMW") == true) {
 					// BMW brand
-					setConnectedState(port, "bmw")
+					setConnectedState(port, "bmw", instanceId)
 					success = true
 					break
 				}
 				if (hmiType?.startsWith("MINI") == true) {
 					// MINI connected
-					setConnectedState(port, "mini")
+					setConnectedState(port, "mini", instanceId)
 					success = true
 					break
 				}
@@ -129,8 +131,8 @@ class CarProber(val bmwCert: ByteArray, val miniCert: ByteArray): HandlerThread(
 		}
 	}
 
-	private fun setConnectedState(port: Int, brand: String) {
+	private fun setConnectedState(port: Int, brand: String, instanceId: Int? = null) {
 		Log.i(TAG, "Successfully detected $brand connection at port $port")
-		IDriveConnectionListener.setConnection(brand, "127.0.0.1", port)
+		IDriveConnectionListener.setConnection(brand, "127.0.0.1", port, instanceId)
 	}
 }
