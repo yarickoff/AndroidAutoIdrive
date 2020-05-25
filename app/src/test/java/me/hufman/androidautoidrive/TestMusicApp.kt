@@ -11,6 +11,7 @@ import kotlinx.coroutines.*
 import me.hufman.androidautoidrive.carapp.RHMIActionAbort
 import me.hufman.androidautoidrive.carapp.music.GlobalMetadata
 import me.hufman.androidautoidrive.carapp.music.MusicApp
+import me.hufman.androidautoidrive.carapp.music.MusicAppMode
 import me.hufman.androidautoidrive.carapp.music.views.*
 import me.hufman.androidautoidrive.music.*
 import me.hufman.androidautoidrive.music.controllers.MusicAppController
@@ -157,7 +158,7 @@ class TestMusicApp {
 	fun testAppInit() {
 		val mockServer = MockBMWRemotingServer()
 		IDriveConnection.mockRemotingServer = mockServer
-		val app = MusicApp( carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController)
+		val app = MusicApp( carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, mock())
 
 		// verify the right elements are selected
 		testAppInitSwitcher(app.appSwitcherView)
@@ -204,7 +205,10 @@ class TestMusicApp {
 	fun testAppFlow() {
 		val mockServer = MockBMWRemotingServer()
 		IDriveConnection.mockRemotingServer = mockServer
-		val app = MusicApp(carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController)
+		val mode = mock<MusicAppMode> {
+			on { shouldRequestAudioContext() } doReturn true
+		}
+		val app = MusicApp(carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, mode)
 		val mockClient = IDriveConnection.mockRemotingClient as BMWRemotingClient
 
 		// click into the trigger a redraw
@@ -1166,7 +1170,7 @@ class TestMusicApp {
 	fun testMusicSessions() {
 		val mockServer = MockBMWRemotingServer()
 		IDriveConnection.mockRemotingServer = mockServer
-		val app = MusicApp(carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController)
+		val app = MusicApp(carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, mock())
 		val mockClient = IDriveConnection.mockRemotingClient as BMWRemotingClient
 
 		val discoveryListenerCapture = ArgumentCaptor.forClass(Runnable::class.java)

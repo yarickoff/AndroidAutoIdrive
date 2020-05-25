@@ -34,7 +34,7 @@ class MainService: Service() {
 	var foregroundNotification: Notification? = null
 
 	val latencyCounter = PercentileCounter().apply {
-		sampleSize = 5
+		sampleSize = 9
 		category = "Performance"
 		name = "Car Latency"
 		Registry.register(this)
@@ -58,7 +58,7 @@ class MainService: Service() {
 
 	var mapService = MapService(this)
 
-	var musicService = MusicService(this)
+	var musicService = MusicService(this, latencyCounter)
 
 
 	override fun onBind(intent: Intent?): IBinder? {

@@ -30,6 +30,9 @@ android {
         buildConfigField "long", "BUILD_TIME", System.currentTimeMillis() + "L"
 
         manifestPlaceholders = [spotify_api_key: System.env.AndroidAutoIdrive_SpotifyApiKey ? System.env.AndroidAutoIdrive_SpotifyApiKey : AndroidAutoIdrive_SpotifyApiKey]
+
+        // hide the Audio Context option and guess using latency measurements
+        buildConfigField "boolean", "AUTOMATIC_AUDIO_CONTEXT", "true"
     }
 
     signingConfigs {

@@ -15,6 +15,11 @@ fun <T> AvgCounter.timeIt(callable: () -> T): T {
 }
 
 class PercentileCounter: AvgCounter() {
+	fun size(): Int {
+		val samplesArray = this.items
+		return Array(samplesArray.length()) { index -> samplesArray[index]}.count { value -> value != Long.MIN_VALUE }
+	}
+
 	fun median(): Long {
 		val samplesArray = this.items
 		val sortedArray = Array(samplesArray.length()) { index -> samplesArray[index] }

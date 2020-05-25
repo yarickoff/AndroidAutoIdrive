@@ -14,7 +14,10 @@ import android.view.View.VISIBLE
 import com.earnstone.perf.Registry
 import kotlinx.android.synthetic.main.activity_setup.*
 import me.hufman.androidautoidrive.BuildConfig
+import me.hufman.androidautoidrive.MutableAppSettings
+import me.hufman.androidautoidrive.PercentileCounter
 import me.hufman.androidautoidrive.R
+import me.hufman.androidautoidrive.carapp.music.MusicAppMode
 import me.hufman.idriveconnectionkit.android.SecurityService
 import java.text.SimpleDateFormat
 import java.util.*
@@ -126,8 +129,11 @@ class SetupActivity : AppCompatActivity() {
 
 		val latency = Registry.getCounter("Performance", null, "Car Latency")
 		paneCarPerformance.visible = latency != null
-		if (latency != null) {
+		if (latency != null && latency is PercentileCounter) {
 			txtCarLatency.text = "${latency.name}: $latency"
+
+			val musicAppMode = MusicAppMode(MutableAppSettings(this), latency)
+			txtCarLatency.text = "${latency.name}: ${latency.percentile(0.0)}/$latency/${latency.percentile(1.0)}\nWill use audio context: ${musicAppMode.shouldRequestAudioContext()}"
 		}
 
 		val carCapabilities = synchronized(DebugStatus.carCapabilities) {

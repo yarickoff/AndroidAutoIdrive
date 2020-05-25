@@ -2,10 +2,11 @@ package me.hufman.androidautoidrive
 
 import android.content.Context
 import me.hufman.androidautoidrive.carapp.music.MusicApp
+import me.hufman.androidautoidrive.carapp.music.MusicAppMode
 import me.hufman.androidautoidrive.music.MusicAppDiscovery
 import me.hufman.androidautoidrive.music.MusicController
 
-class MusicService(val context: Context) {
+class MusicService(val context: Context, val latencyCounter: PercentileCounter) {
 	var threadMusic: CarThread? = null
 	var carappMusic: MusicApp? = null
 
@@ -14,13 +15,15 @@ class MusicService(val context: Context) {
 			if (threadMusic == null) {
 				threadMusic = CarThread("Music") {
 					val handler = threadMusic?.handler ?: return@CarThread
-					var musicAppDiscovery = MusicAppDiscovery(context, handler)
-					var musicController = MusicController(context, handler)
+					val musicAppDiscovery = MusicAppDiscovery(context, handler)
+					val musicController = MusicController(context, handler)
+					val musicAppMode = MusicAppMode(MutableAppSettings(context), latencyCounter)
 					carappMusic = MusicApp(CarAppAssetManager(context, "multimedia"),
 							PhoneAppResourcesAndroid(context),
 							GraphicsHelpersAndroid(),
 							musicAppDiscovery,
-							musicController)
+							musicController,
+							musicAppMode)
 					musicAppDiscovery.discoverApps()
 				}
 				threadMusic?.start()

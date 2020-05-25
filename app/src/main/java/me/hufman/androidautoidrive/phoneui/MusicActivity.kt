@@ -141,6 +141,7 @@ class MusicActivity : AppCompatActivity() {
 	}
 
 	fun redraw() {
+		swAudioContext.visible = !AppSettings[AppSettings.KEYS.AUDIO_AUTOMATIC_CONTEXT].toBoolean()
 		swAudioContext.isChecked = AppSettings[AppSettings.KEYS.AUDIO_ENABLE_CONTEXT].toBoolean()
 		paneGrantSessions.visibility = if (hasNotificationPermission()) View.GONE else View.VISIBLE
 	}

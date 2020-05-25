@@ -2,7 +2,6 @@ package me.hufman.androidautoidrive.carapp.music
 
 import android.util.Log
 import de.bmw.idrive.BMWRemoting
-import me.hufman.androidautoidrive.AppSettings
 import me.hufman.androidautoidrive.GraphicsHelpers
 import me.hufman.androidautoidrive.carapp.RHMIApplicationSynchronized
 import me.hufman.androidautoidrive.music.MusicAppInfo
@@ -19,7 +18,7 @@ fun amAppIdentifier(packageName: String): String {
 val MusicAppInfo.amAppIdentifier: String
 	get() = amAppIdentifier(this.packageName)
 
-class AVContextHandler(val app: RHMIApplicationSynchronized, val controller: MusicController, val graphicsHelpers: GraphicsHelpers) {
+class AVContextHandler(val app: RHMIApplicationSynchronized, val controller: MusicController, val graphicsHelpers: GraphicsHelpers, val musicAppMode: MusicAppMode) {
 	val TAG = "AVContextHandler"
 	val carConnection = (app.unwrap() as RHMIApplicationEtch).remoteServer
 	var amHandle: Int? = null
@@ -93,8 +92,7 @@ class AVContextHandler(val app: RHMIApplicationSynchronized, val controller: Mus
 			Log.w(TAG, "Wanted to requestContext for missing app $ident?")
 	}
 	fun av_requestContext(app: MusicAppInfo) {
-		val setting = AppSettings[AppSettings.KEYS.AUDIO_ENABLE_CONTEXT]
-		if (setting.toBoolean()) {
+		if (musicAppMode.shouldRequestAudioContext()) {
 			Log.i(TAG, "Sending requestContext to car for ${app.name}")
 			this.app.runSynchronized {
 				if (!currentContext) {

@@ -48,7 +48,7 @@ class CarProber(val bmwCert: ByteArray, val miniCert: ByteArray, val latencyCoun
 			schedule(5000)
 		}
 
-		schedule(5000)
+		schedule(3000)
 	}
 
 	override fun onLooperPrepared() {
