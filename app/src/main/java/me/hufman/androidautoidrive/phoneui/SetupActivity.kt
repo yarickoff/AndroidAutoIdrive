@@ -6,10 +6,12 @@ import android.content.Intent
 import android.content.IntentFilter
 import android.net.Uri
 import android.os.Bundle
+import android.os.Handler
 import android.support.v7.app.AppCompatActivity
 import android.view.View
 import android.view.View.GONE
 import android.view.View.VISIBLE
+import com.earnstone.perf.Registry
 import kotlinx.android.synthetic.main.activity_setup.*
 import me.hufman.androidautoidrive.BuildConfig
 import me.hufman.androidautoidrive.R
@@ -29,7 +31,11 @@ class SetupActivity : AppCompatActivity() {
 		override fun onReceive(p0: Context?, p1: Intent?) {
 			redraw()
 		}
+	}
 
+	val handler = Handler()
+	val redrawTask: Runnable = Runnable {
+		redraw()
 	}
 
 	override fun onCreate(savedInstanceState: Bundle?) {
@@ -49,6 +55,12 @@ class SetupActivity : AppCompatActivity() {
 		super.onResume()
 
 		redraw()
+	}
+
+	override fun onPause() {
+		super.onPause()
+
+		handler.removeCallbacks(redrawTask)
 	}
 
 	override fun onDestroy() {
@@ -112,6 +124,12 @@ class SetupActivity : AppCompatActivity() {
 		val buildTime = SimpleDateFormat.getDateTimeInstance().format(Date(BuildConfig.BUILD_TIME))
 		txtBuildInfo.text = getString(R.string.txt_build_info, BuildConfig.VERSION_NAME, buildTime)
 
+		val latency = Registry.getCounter("Performance", null, "Car Latency")
+		paneCarPerformance.visible = latency != null
+		if (latency != null) {
+			txtCarLatency.text = "${latency.name}: $latency"
+		}
+
 		val carCapabilities = synchronized(DebugStatus.carCapabilities) {
 			DebugStatus.carCapabilities.map {
 				"${it.key}: ${it.value}"
@@ -119,6 +137,9 @@ class SetupActivity : AppCompatActivity() {
 		}
 		txtCarCapabilities.text = carCapabilities
 		paneCarCapabilities.visible = carCapabilities.isNotEmpty()
+
+		handler.removeCallbacks(redrawTask)
+		handler.postDelayed(redrawTask, 1000)
 	}
 
 	fun installBMWClassic() {

@@ -3,6 +3,8 @@ package me.hufman.androidautoidrive
 import android.os.Handler
 import android.os.HandlerThread
 import android.util.Log
+import com.earnstone.perf.AvgCounter
+import de.bmw.idrive.BMWRemoting
 import de.bmw.idrive.BMWRemotingServer
 import de.bmw.idrive.BaseBMWRemotingClient
 import me.hufman.idriveconnectionkit.IDriveConnection
@@ -15,7 +17,7 @@ import java.net.Socket
 /**
  * Tries to connect to a car
  */
-class CarProber(val bmwCert: ByteArray, val miniCert: ByteArray): HandlerThread("CarProber") {
+class CarProber(val bmwCert: ByteArray, val miniCert: ByteArray, val latencyCounter: AvgCounter): HandlerThread("CarProber") {
 	companion object {
 		val PORTS = listOf(4004, 4005, 4006, 4007, 4008)
 		val TAG = "CarProber"
@@ -102,7 +104,9 @@ class CarProber(val bmwCert: ByteArray, val miniCert: ByteArray): HandlerThread(
 				val sas_challenge = conn.sas_certificate(signedCert)
 				val sas_login = SecurityService.signChallenge(challenge = sas_challenge)
 				conn.sas_login(sas_login)
-				val capabilities = conn.rhmi_getCapabilities("", 255)
+				val capabilities = latencyCounter.timeIt {
+					conn.rhmi_getCapabilities("", 255)
+				}
 				carConnection = conn
 
 				val vehicleType = capabilities["vehicle.type"] as? String?
@@ -135,7 +139,11 @@ class CarProber(val bmwCert: ByteArray, val miniCert: ByteArray): HandlerThread(
 
 	private fun pingCar(): Boolean {
 		try {
-			return carConnection?.ver_getVersion() != null
+			latencyCounter.timeIt {
+				// throw an exception if not connected to not contribute to latency average
+				carConnection?.ver_getVersion() ?: throw BMWRemoting.IllegalStateException()
+			}
+			return true
 		} catch (e: java.lang.Exception) {
 			carConnection = null
 			Log.w(TAG, "Exception while pinging car", e)

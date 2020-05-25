@@ -164,6 +164,28 @@
                     android:textIsSelectable="true" />
             </LinearLayout>
             <LinearLayout
+                android:id="@+id/paneCarPerformance"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical"
+                android:paddingBottom="15dp">
+
+                <TextView
+                    android:id="@+id/lblCarPerformance"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="@string/txt_car_performance" />
+
+                <TextView
+                    android:id="@+id/txtCarLatency"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:gravity="start|top"
+                    android:longClickable="true"
+                    android:textIsSelectable="true" />
+            </LinearLayout>
+            <LinearLayout
                 android:id="@+id/paneCarCapabilities"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"

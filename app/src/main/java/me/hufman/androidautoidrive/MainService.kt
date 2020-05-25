@@ -8,10 +8,10 @@ import android.os.IBinder
 import android.provider.Settings
 import android.util.Log
 import com.bmwgroup.connected.car.app.BrandType
+import com.earnstone.perf.Registry
 import me.hufman.androidautoidrive.carapp.notifications.CarNotificationControllerIntent
 import me.hufman.androidautoidrive.carapp.notifications.NotificationListenerServiceImpl
 import me.hufman.androidautoidrive.carapp.notifications.PhoneNotifications
-import me.hufman.androidautoidrive.carapp.notifications.UnicodeCleaner
 import me.hufman.androidautoidrive.phoneui.DebugStatus
 import me.hufman.androidautoidrive.phoneui.MainActivity
 import me.hufman.androidautoidrive.phoneui.SetupActivity
@@ -33,11 +33,18 @@ class MainService: Service() {
 
 	var foregroundNotification: Notification? = null
 
+	val latencyCounter = PercentileCounter().apply {
+		sampleSize = 5
+		category = "Performance"
+		name = "Car Latency"
+		Registry.register(this)
+	}
 	val idriveConnectionListener = IDriveConnectionListener()   // start listening to car connection, if the AndroidManifest listener didn't start
 	val carProberThread by lazy {
 		CarProber(
 			CarAppAssetManager(this, "smartthings").getAppCertificateRaw("bmw")!!.readBytes(),
-			CarAppAssetManager(this, "smartthings").getAppCertificateRaw("mini")!!.readBytes()
+			CarAppAssetManager(this, "smartthings").getAppCertificateRaw("mini")!!.readBytes(),
+			latencyCounter
 		)
 	}
 
