@@ -7,6 +7,9 @@ object Analytics: AnalyticsProvider {
 	override fun init(context: Context) {
 	}
 
+	override fun reportException(e: Throwable) {
+	}
+
 	override fun reportMusicAppProbe(appInfo: MusicAppInfo) {
 	}
 

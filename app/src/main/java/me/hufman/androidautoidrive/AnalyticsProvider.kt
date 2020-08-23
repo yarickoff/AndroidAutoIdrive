@@ -5,6 +5,7 @@ import me.hufman.androidautoidrive.music.MusicAppInfo
 
 interface AnalyticsProvider {
 	fun init(context: Context)
+	fun reportException(e: Throwable)
 	fun reportMusicAppProbe(appInfo: MusicAppInfo)
 	fun reportCarProbeFailure(port: Int, message: String?, throwable: Throwable?)
 	fun reportCarProbeDiscovered(port: Int?, vehicleType: String?, hmiType: String?)

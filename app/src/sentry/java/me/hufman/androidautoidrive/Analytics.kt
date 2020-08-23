@@ -13,6 +13,10 @@ object Analytics: AnalyticsProvider {
 		Sentry.init(AndroidSentryClientFactory(context))
 	}
 
+	override fun reportException(e: Throwable) {
+		Sentry.capture(e)
+	}
+
 	override fun reportMusicAppProbe(appInfo: MusicAppInfo) {
 		val event = EventBuilder()
 				.withMessage("Probed music app")

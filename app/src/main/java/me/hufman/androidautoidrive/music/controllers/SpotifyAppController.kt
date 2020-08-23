@@ -9,9 +9,11 @@ import android.util.Log
 import android.util.LruCache
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.SpotifyAppRemote
+import com.spotify.android.appremote.api.error.UserNotAuthorizedException
 import com.spotify.protocol.client.Subscription
 import com.spotify.protocol.types.*
 import kotlinx.coroutines.CompletableDeferred
+import me.hufman.androidautoidrive.Analytics
 import me.hufman.androidautoidrive.MutableObservable
 import me.hufman.androidautoidrive.Observable
 import me.hufman.androidautoidrive.R
@@ -77,6 +79,9 @@ class SpotifyAppController(context: Context, val remote: SpotifyAppRemote): Musi
 					pendingController.value?.disconnect()
 					if (pendingController.pending) {
 						pendingController.value = null
+					}
+					if (e != null) {
+						Analytics.reportException(e)
 					}
 				}
 
