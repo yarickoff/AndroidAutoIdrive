@@ -10,6 +10,7 @@ import de.bmw.idrive.BMWRemotingClient
 import kotlinx.coroutines.*
 import me.hufman.androidautoidrive.carapp.RHMIActionAbort
 import me.hufman.androidautoidrive.carapp.music.GlobalMetadata
+import me.hufman.androidautoidrive.carapp.music.KJUMultimedia
 import me.hufman.androidautoidrive.carapp.music.MusicApp
 import me.hufman.androidautoidrive.carapp.music.MusicAppMode
 import me.hufman.androidautoidrive.carapp.music.views.*
@@ -165,7 +166,7 @@ class TestMusicApp {
 	fun testAppInit() {
 		val mockServer = MockBMWRemotingServer()
 		IDriveConnection.mockRemotingServer = mockServer
-		val app = MusicApp(securityAccess, carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, mock())
+		val app = MusicApp(securityAccess, carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, mock(), mock())
 
 		// verify the right elements are selected
 		testAppInitSwitcher(app.appSwitcherView)
@@ -212,10 +213,11 @@ class TestMusicApp {
 	fun testAppFlow() {
 		val mockServer = MockBMWRemotingServer()
 		IDriveConnection.mockRemotingServer = mockServer
+		val kju = mock<KJUMultimedia>()
 		val mode = mock<MusicAppMode> {
 			on { shouldRequestAudioContext() } doReturn true
 		}
-		val app = MusicApp(securityAccess, carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, mode)
+		val app = MusicApp(securityAccess, carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, kju, mode)
 		val mockClient = IDriveConnection.mockRemotingClient as BMWRemotingClient
 
 		// click into the trigger a redraw
@@ -304,6 +306,9 @@ class TestMusicApp {
 		assertEquals("Title", mockServer.data[IDs.IC_TRACK_MODEL])
 		assertTrue(mockServer.triggeredEvents.containsKey(IDs.MULTIMEDIA_EVENT))
 		assertTrue(mockServer.triggeredEvents.containsKey(IDs.STATUSBAR_EVENT))
+		verify(kju).setMultimediaInfo("Artist", "Album", "Title")
+		verify(kju).setMultimediaInfoCover(any())
+		verify(kju).setMultimediaInfoProgress(2)
 
 		// show the app window again, with an app selected
 		mockClient.rhmi_onHmiEvent(1, "unused", IDs.APPLIST_STATE, 1, mapOf(4.toByte() to true))
@@ -316,6 +321,8 @@ class TestMusicApp {
 		val app = RHMIApplicationEtch(mockServer, 1)
 		app.loadFromXML(carAppResources.getUiDescription()?.readBytes() as ByteArray)
 
+		val kju = mock<KJUMultimedia>()
+
 		// set the current app and song
 		whenever(musicController.currentAppInfo).doReturn(MusicAppInfo("Test2", mock(), "package", "class"))
 		whenever(musicController.isConnected()) doReturn true
@@ -323,7 +330,7 @@ class TestMusicApp {
 				duration=180000L,
 				icon=mock(), coverArt=mock(),
 				artist="Artist", album="Album", title="Title")
-		val globalState = GlobalMetadata(app, musicController)
+		val globalState = GlobalMetadata(app, musicController, kju)
 		globalState.redraw()
 
 		// verify global metadata happened
@@ -334,6 +341,9 @@ class TestMusicApp {
 		assertEquals("EntICPlaylist", mockServer.data[IDs.IC_USECASE_MODEL])
 		assertTrue(mockServer.triggeredEvents.containsKey(IDs.MULTIMEDIA_EVENT))
 		assertTrue(mockServer.triggeredEvents.containsKey(IDs.STATUSBAR_EVENT))
+		verify(kju).setMultimediaInfo("Artist", "Album", "Title")
+		verify(kju).setMultimediaInfoCover(any())
+		verify(kju).setMultimediaInfoProgress(2)
 
 		// add a queue
 		whenever(musicController.getQueue()) doAnswer { listOf(
@@ -521,7 +531,7 @@ class TestMusicApp {
 		val mockServer = MockBMWRemotingServer()
 		val app = RHMIApplicationEtch(mockServer, 1)
 		app.loadFromXML(carAppResources.getUiDescription()?.readBytes() as ByteArray)
-		val globalState = GlobalMetadata(app, musicController)
+		val globalState = GlobalMetadata(app, musicController, mock())
 		globalState.initWidgets()
 
 		// an empty queue with no actions
@@ -1224,7 +1234,7 @@ class TestMusicApp {
 	fun testMusicSessions() {
 		val mockServer = MockBMWRemotingServer()
 		IDriveConnection.mockRemotingServer = mockServer
-		val app = MusicApp(securityAccess, carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, mock())
+		val app = MusicApp(securityAccess, carAppResources, phoneAppResources, graphicsHelpers, musicAppDiscovery, musicController, mock(), mock())
 		val mockClient = IDriveConnection.mockRemotingClient as BMWRemotingClient
 
 		val discoveryListenerCapture = argumentCaptor<Runnable>()

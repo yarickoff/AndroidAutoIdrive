@@ -8,7 +8,7 @@ import me.hufman.androidautoidrive.music.MusicController
 import me.hufman.androidautoidrive.music.MusicMetadata
 import me.hufman.idriveconnectionkit.rhmi.*
 
-class GlobalMetadata(app: RHMIApplication, var controller: MusicController) {
+class GlobalMetadata(app: RHMIApplication, var controller: MusicController, val globalMultimedia: KJUMultimedia) {
 	val multimediaInfoEvent: RHMIEvent.MultimediaInfoEvent
 	val statusbarEvent: RHMIEvent.StatusbarEvent
 	val instrumentCluster: RHMIComponent.InstrumentCluster
@@ -17,6 +17,7 @@ class GlobalMetadata(app: RHMIApplication, var controller: MusicController) {
 	var displayedSong: MusicMetadata? = null
 	var displayedQueue: List<MusicMetadata>? = null
 	var icQueue: List<MusicMetadata> = ArrayList()
+	var displayedProgress: Int = 0
 
 	init {
 		multimediaInfoEvent = app.events.values.filterIsInstance<RHMIEvent.MultimediaInfoEvent>().first()
@@ -51,9 +52,15 @@ class GlobalMetadata(app: RHMIApplication, var controller: MusicController) {
 			this.icQueue = icQueue
 		}
 
+		val progress = controller.getPlaybackPosition().getPercentage()
+		if (progress != displayedProgress) {
+			globalMultimedia.setMultimediaInfoProgress(progress)
+		}
+
 		displayedApp = app
 		displayedSong = song
 		displayedQueue = queue
+		displayedProgress = progress
 	}
 
 	private fun showApp(app: MusicAppInfo) {
@@ -74,6 +81,9 @@ class GlobalMetadata(app: RHMIApplication, var controller: MusicController) {
 
 		// actually tell the car to load the data
 		multimediaInfoEvent.triggerEvent()
+
+		globalMultimedia.setMultimediaInfo(song.artist ?: "", song.album ?: "", song.title ?: "")
+		song.coverArt?.let { globalMultimedia.setMultimediaInfoCover(it) }
 	}
 
 	/**

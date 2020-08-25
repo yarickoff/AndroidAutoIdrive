@@ -1,6 +1,7 @@
 package me.hufman.androidautoidrive
 
 import android.content.Context
+import me.hufman.androidautoidrive.carapp.music.KJUMultimedia
 import me.hufman.androidautoidrive.carapp.music.MusicApp
 import me.hufman.androidautoidrive.carapp.music.MusicAppMode
 import me.hufman.androidautoidrive.music.MusicAppDiscovery
@@ -18,12 +19,14 @@ class MusicService(val context: Context, val securityAccess: SecurityAccess) {
 					val handler = threadMusic?.handler ?: return@CarThread
 					val musicAppDiscovery = MusicAppDiscovery(context, handler)
 					val musicController = MusicController(context, handler)
+					val kjuMultimedia = KJUMultimedia(context, GraphicsHelpersAndroid(), "com.spotify.music")
 					carappMusic = MusicApp(securityAccess,
 							CarAppAssetManager(context, "multimedia"),
 							PhoneAppResourcesAndroid(context),
 							GraphicsHelpersAndroid(),
 							musicAppDiscovery,
 							musicController,
+							kjuMultimedia,
 							MusicAppMode(MutableAppSettings(context)))
 					musicAppDiscovery.discoverApps()
 				}

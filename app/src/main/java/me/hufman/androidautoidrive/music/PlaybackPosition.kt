@@ -20,4 +20,10 @@ class PlaybackPosition(val playbackPaused: Boolean,     // basically whether to 
 			}
 		}
 	}
+
+	fun getPercentage(): Int {
+		return if (maximumPosition > 0) {
+			(getPosition() * 100 / maximumPosition).toInt()
+		} else 0
+	}
 }
