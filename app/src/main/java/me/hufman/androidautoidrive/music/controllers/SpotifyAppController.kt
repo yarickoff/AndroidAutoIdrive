@@ -7,6 +7,7 @@ import android.graphics.drawable.Drawable
 import android.os.Handler
 import android.util.Log
 import android.util.LruCache
+import com.fasterxml.jackson.annotation.JsonProperty
 import com.spotify.android.appremote.api.ConnectionParams
 import com.spotify.android.appremote.api.SpotifyAppRemote
 import com.spotify.protocol.client.Subscription
@@ -398,8 +399,19 @@ class SpotifyAppController(context: Context, val remote: SpotifyAppRemote): Musi
 	}
 
 	override suspend fun search(query: String): List<MusicMetadata>? {
-		// requires a Web API call, not sure how to get the access token
-		return null
+		// completely undocumented and has been removed, but still exists in, say, 8.4.85
+		// a full implementation would need to access the Web API
+		val deferred = CompletableDeferred<List<MusicMetadata>?>()
+		remote.call("com.spotify.search_query", SearchQuery(query), ListItems::class.java).setResultCallback { results ->
+			Log.i(TAG, "Received search results for query $query: ${results.items}")
+			deferred.complete(results.items.map {
+				MusicMetadata.fromSpotify(it)
+			})
+		}.setErrorCallback {
+			Log.w(TAG, "Received error during search: ", it)
+			deferred.complete(null)
+		}
+		return deferred.await()
 	}
 
 	override fun subscribe(callback: (MusicAppController) -> Unit) {
@@ -435,3 +447,9 @@ class SpotifyAppController(context: Context, val remote: SpotifyAppRemote): Musi
 		return "SpotifyAppController"
 	}
 }
+
+data class SearchQuery(
+		@JsonProperty val query: String,
+		@JsonProperty val limit: Int = 100,
+		@JsonProperty val offset: Int = 0
+): Item
