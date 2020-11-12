@@ -12,6 +12,8 @@ import android.service.notification.StatusBarNotification
 import android.support.v4.app.NotificationCompat
 import android.support.v4.app.NotificationManagerCompat.IMPORTANCE_LOW
 import android.support.v4.app.NotificationManagerCompat.IMPORTANCE_HIGH
+import android.view.ViewGroup
+import android.widget.TextView
 import com.nhaarman.mockito_kotlin.*
 import de.bmw.idrive.BMWRemoting
 import de.bmw.idrive.BMWRemotingClient
@@ -247,6 +249,27 @@ class TestNotificationApp {
 		assertEquals("me.hufman.androidautoidrive", notificationObject.packageName)
 		assertEquals("Title", notificationObject.title)
 		assertEquals("Summary", notificationObject.text)
+	}
+
+	@Test
+	fun testSummaryCustomView() {
+		val phoneNotification = createNotification("Ticker Text", "Title", "Text", "Summary", false)
+		val notification = phoneNotification.notification
+		notification.bigContentView = mock()
+
+		val label = mock<TextView> {
+			on { isClickable } doReturn true
+			on { text } doReturn "View Action"
+		}
+		val container = mock<ViewGroup> {
+			on { childCount } doReturn 1
+			on { getChildAt(any())} doReturn label
+		}
+		ParseNotification.remoteViewInflater = {container}
+		val parsed = ParseNotification.summarizeNotification(phoneNotification)
+
+		assertEquals(1, parsed.actions.size)
+		assertEquals("View Action", parsed.actions[0].name)
 	}
 
 	@Test
